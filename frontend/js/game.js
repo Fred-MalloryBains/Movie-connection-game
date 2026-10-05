@@ -1,8 +1,9 @@
-import { getActor, getLinkingMovies } from "./api.js";
+import { getActor, getLinkingMovies, getPathBetweenActors  } from "./api.js";
 import { gameState, resetGameState } from "./gameState.js";
 import {
     appendStepCard,
     logOutput,
+    renderMinimumPath,
     renderTurnHeader,
     renderActorPreview
 } from "./dom.js";
@@ -20,26 +21,42 @@ export async function startGame() {
         .getElementById("goalActor")
         .value
         .trim();
+    
+    try{
 
-    gameState.firstActor = await getActor(startName);
-    gameState.goalActor = await getActor(goalName);
+        gameState.firstActor = await getActor(startName);
+        gameState.goalActor = await getActor(goalName);
 
-    if (!gameState.firstActor || !gameState.goalActor) {
-        logOutput("Actor not found.", "error");
-        return;
-    }
-
-    gameState.playerPath = [
-        {
-            id: gameState.firstActor.id,
-            name: gameState.firstActor.name
+        if (!gameState.firstActor || !gameState.goalActor) {
+            logOutput("Actor not found.", "error");
+            return;
         }
-    ];
 
-        renderTurnHeader(gameState.firstActor, gameState.goalActor);
+        const result = await getPathBetweenActors(
+            gameState.firstActor.id,
+            gameState.goalActor.id
+        );
 
-    document.getElementById("game").style.display = "block";
-    document.getElementById("setup").style.display = "none";
+        gameState.shortestPath = result;
+
+        gameState.playerPath = [
+            {
+                id: gameState.firstActor.id,
+                name: gameState.firstActor.name
+            }
+        ];
+
+        renderTurnHeader(
+            gameState.firstActor,
+            gameState.goalActor);
+
+        document.getElementById("game").style.display = "block";
+        document.getElementById("setup").style.display = "none";
+    }
+    catch (error) {
+        logOutput("An error occurred while starting the game.", "error");
+        console.error(error);
+    }
 }
 
 export async function nextTurn(actorName = null) {
@@ -87,6 +104,7 @@ export async function nextTurn(actorName = null) {
                 gameState.finalPlayerLinks = gameState.playerPath.length - 1;
                  
                 logOutput(`🎉 Congratulations! You reached <b>${gameState.goalActor.name}</b> in ${gameState.finalPlayerLinks} links!`, { level: "success" });
+                renderMinimumPath(gameState.shortestPath);
                 showRestartButton();
                 
             }
@@ -95,6 +113,7 @@ export async function nextTurn(actorName = null) {
             document.getElementById("game").style.display = "none";
             // stop background update if it completes later (we won't post it in this case)
             gameState.gameFinished = false;
+            renderMinimumPath(gameState.shortestPath);
 
             showRestartButton();
         }
@@ -122,6 +141,8 @@ export async function finishGame() {
     document.getElementById("nextSuggestions").replaceChildren();
 
     document.getElementById("output").replaceChildren();
+    document.getElementById("minPath").replaceChildren();
+    document.getElementById("minPathContainer").style.display = "none";
 
     renderActorPreview("startPreview", null);
     renderActorPreview("goalPreview", null);

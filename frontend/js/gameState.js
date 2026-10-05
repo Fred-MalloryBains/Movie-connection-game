@@ -2,7 +2,7 @@ export const gameState = {
     firstActor: null,
     goalActor: null,
     playerPath: [],
-    shortestPath: [],
+    shortestPath: null,
     minLinks: null,
     calculatingMinLinks: false,
     gameFinished: false,
@@ -14,7 +14,7 @@ export function resetGameState() {
     gameState.firstActor = null;
     gameState.goalActor = null;
     gameState.playerPath = [];
-    gameState.shortestPath = [];
+    gameState.shortestPath = null;
     gameState.minLinks = null;
     gameState.calculatingMinLinks = false;
     gameState.gameFinished = false;

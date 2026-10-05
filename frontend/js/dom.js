@@ -4,6 +4,41 @@ function imageUrl(path, size = "w92") {
     return `https://image.tmdb.org/t/p/${size}${path}`;
 }
 
+
+export function renderMinimumPath(result) {
+    const container = document.getElementById("minPathContainer");
+    container.style.display = "block";
+    
+    const output = document.getElementById("minPath");
+    output.style.display = "block";
+    output.replaceChildren();
+
+
+    if (!result || !result.path) {
+        logOutput("No connection found within the search limit.", "error");
+        return;
+    }
+
+    const pathContainer = document.createElement("div");
+
+    for (let index = 0; index < result.path.length; index += 1) {
+        const node = result.path[index];
+
+        if (node.type === "actor") {
+            pathContainer.appendChild(
+                createActorNode(node)
+            );
+        }
+
+        if (node.type === "movie") {
+            pathContainer.appendChild(
+                createMovieNode(node)
+            );
+        }
+    }
+    output.appendChild(pathContainer);
+}
+
 export function createActorNode(actor) {
     const element = document.createElement("div");
     element.className = "actor-pill";

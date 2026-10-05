@@ -111,3 +111,16 @@ export async function getRandomActor() {
     const data = await response.json();
     return data.name;
 }
+
+export async function getPathBetweenActors(actorId1, actorId2) {
+    const response = await fetch(
+        `${BACKEND_URL}/api/get_path?start=${encodeURIComponent(actorId1)}&target=${encodeURIComponent(actorId2)}`
+    );
+    
+    if (!response.ok) {
+        throw new Error(`Backend request failed: ${response.status}`);
+    }
+    const path = await response.json();
+    console.log("Raw path data:", path);
+    return path;
+}

@@ -7,6 +7,7 @@ from seed import populate_db, clear_db
 from flask import jsonify, request
 from sqlalchemy import func
 import random
+from min_links import ActorNotFound, TMDBError, find_path
 
 load_dotenv()  # Load environment variables from .env file
 TMDB_API_KEY = os.getenv("TMDB_API_KEY")
@@ -258,6 +259,36 @@ def get_random_actor():
     else:
         return jsonify({"error": "No actors found in the database"}), 404
 
+
+
+@app.route("/api/get_path", methods=["GET"])
+def get_path():
+    start = request.args.get("start", type=int)
+    target = request.args.get("target", type=int)
+    if start is None or target is None:
+        return jsonify(error="start and target are required"), 400
+    try:
+        result = find_path(start, target)
+    except ActorNotFound as e:
+        return jsonify(error=str(e)), 404      # bad/non-TMDB id
+    except TMDBError as e:
+        return jsonify(error=str(e)), 502      # TMDB down, bad key, rate limit
+    if result is None:
+        return jsonify(path=None, message="No connection within 6 movies"), 200
+    for result_item in result["path"]:
+        if result_item["type"] == "actor":
+            actor = Actor.query.get(result_item["id"])
+            if actor:
+                result_item["name"] = actor.name
+                result_item["profile_path"] = actor.profile_path
+        else:
+            movie = Movie.query.get(result_item["id"])
+            if movie:
+                result_item["title"] = movie.title
+                result_item["poster_path"] = movie.poster_path
+    return jsonify(result)
+
+
 @app.route("/api/get_actor_info", methods=["GET"])
 def get_actor_info():
     actor_id = request.args.get("id")
@@ -283,9 +314,4 @@ def get_actor_info():
         "name": actor.name,
         "profile_path": actor.profile_path
     })
-
-@app.route("/api/get_path", methods=["GET"])
-def get_path():
-    ## This endpoint is a placeholder for the pathfinding logic between two actors.
-    pass
        
