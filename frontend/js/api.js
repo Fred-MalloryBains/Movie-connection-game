@@ -1,5 +1,5 @@
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
-const BACKEND_URL = "https://brief-improvements-membership-magical.trycloudflare.com";
+const BACKEND_URL = "https://fredmallorybains.dev";
 
 export async function getActor(name) {
 
