@@ -14,7 +14,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///movies.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'supersecretkey'  # required by Flask-Admin
-CORS(app)
+
 
 db.init_app(app)
 migrate = Migrate(app, db)  
@@ -23,6 +23,8 @@ with app.app_context():
     db.create_all()  # creates tables
 
 import routes
+
+CORS(app, resources={r"/*": {"origins": "*"}})  # Allow all origins for simplicity
 admin = Admin(app, name="TMDB Admin", template_mode="bootstrap3")
 
 # Add your models to the admin interface
